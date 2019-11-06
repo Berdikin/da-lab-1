@@ -1,0 +1,465 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T2B]{fontenc}
+\usepackage[english,russian]{babel}
+\frenchspacing
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage[table]{xcolor}
+\usepackage{array}
+\usepackage{color}
+\usepackage{xcolor}
+
+\usepackage{hyperref}
+
+
+\newcommand{\MYhref}[3][blue]{\href{#2}{\color{#1}{#3}}}%
+
+\usepackage{listings}
+\usepackage{alltt}
+\usepackage{csquotes}
+\DeclareQuoteStyle{russian}
+	{\guillemotleft}{\guillemotright}[0.025em]
+	{\quotedblbase}{\textquotedblleft}
+\ExecuteQuoteOptions{style=russian}
+
+\usepackage{graphicx}
+
+\usepackage{listings}
+\lstset{tabsize=2,
+	breaklines,
+	columns=fullflexible,
+	flexiblecolumns,
+	numbers=left,
+	numberstyle={\footnotesize},
+	extendedchars,
+	inputencoding=utf8}
+
+\usepackage{longtable}
+
+\def\@xobeysp{ }
+\def\verbatim@processline{\hspace{1.2cm}\raggedright\the\verbatim@line\par}
+
+\oddsidemargin=-0.4mm
+\textwidth=160mm
+\topmargin=4.6mm
+\textheight=210mm
+
+\parindent=0pt
+\parskip=3pt
+
+\definecolor{lightgray}{gray}{0.9}
+
+
+\renewcommand{\thesubsection}{\arabic{subsection}}
+
+\lstdefinestyle{customc}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  frame=L,
+  xleftmargin=\parindent,
+  language=C,
+  showstringspaces=false,
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\bfseries\color{green!40!black},
+  commentstyle=\itshape\color{gray},
+  identifierstyle=\color{black},
+  stringstyle=\color{blue},
+}
+
+\lstdefinestyle{customasm}{
+  belowcaptionskip=1\baselineskip,
+  frame=L,
+  xleftmargin=\parindent,
+  language=[x86masm]Assembler,
+  basicstyle=\footnotesize\ttfamily,
+  commentstyle=\itshape\color{purple!40!black},
+}
+
+\lstset{escapechar=@,style=customc}
+
+
+\newcommand{\CWPHeader}[1]{\addtocounter{section}{-1}\section{#1}}
+
+% Заголовок лабораторной работы.
+% Единственный аргумент --- ее тема
+\newcommand{\CWHeader}[1]{\section*{#1}}
+
+\newcommand{\CWProblem}[1]{\par\textbf{Задача: }#1}
+\begin{document}
+\begin{titlepage}
+\begin{center}
+\bfseries
+
+{\Large Московский авиационный институт\\ (национальный исследовательский университет)
+
+}
+
+\vspace{48pt}
+
+{\large Факультет информационных технологий и прикладной математики
+}
+
+\vspace{36pt}
+
+{\large Кафедра вычислительной математики и~программирования
+
+}
+
+
+\vspace{48pt}
+
+Лабораторная работа \textnumero 1 по курсу \enquote{Дискретный анализ}
+
+\end{center}
+
+\vspace{72pt}
+
+\begin{flushright}
+\begin{tabular}{rl}
+Студент: & Т.\,А. Бердикин \\
+Преподаватель: & А.\,А. Кухтичев \\
+Группа: & М8О-207Б \\
+Дата: & \\
+Оценка: & \\
+Подпись: & \\
+\end{tabular}
+\end{flushright}
+
+\vfill
+
+\begin{center}
+\bfseries
+Москва, \the\year
+\pagebreak
+\end{center}
+\end{titlepage}
+\CWHeader{Лабораторная работа \textnumero 1}
+
+\CWProblem{
+Требуется разработать программу, осуществляющую ввод пар \enquote{ключ-значение}, их 
+упорядочивание по возрастанию ключа указанным алгоритмом сортировки за линейное время и вывод отсортированной последовательности.
+
+{\bfseries Вариант сортировки:} Сортировка подсчётом.
+
+{\bfseries Вариант ключа:} { \normalfont\ttfamily числа от 0 до $10^{6}-1$, почтовые индексы. }
+
+{\bfseries Вариант значения:} { \normalfont\ttfamily числа от 0 до $2^{64}-1$.}
+}
+\pagebreak
+\section{Описание}
+
+Основная идея сортировки подсчётом, алгоритма со списком. Этот вариант используется, когда на вход подается массив структур данных, который следует отсортировать по ключам (назовём их key, а максимальный ключ пусть будет k). Нужно создать вспомогательный массив $C[0..k - 1]$, каждый $C[i]$ в дальнейшем будет содержать список элементов из входного массива. Затем последовательно прочитать элементы входного массива $A$, каждый $A[i]$ добавить в список $C[A[i].key]$. В заключении пройти по массиву $C$, для каждого $j \in [0..k - 1]$ в массив A последовательно записывать элементы списка $C[j]$. Алгоритм устойчив - это значит, что он не будет менять относительный порядок сортируемых элементов, имеющих одинаковые ключи. \site{Wiki}.
+
+\pagebreak
+
+\section{Исходный код}
+Входные данные состоят из пар: ключ, значение, где ключ - это почтовый индекс, а значение - это 64-битное число в десятичном представлении. Так как длинна нашего ключа ничем не зафиксирована, то необходимо его привести к какому-то единому стандарту. Этим стандартом является число длиной в 6 символов,так как это максимальная длинна почтового индекса. Значит, что? Если во входных данных индекс имеет менее шести знаков, чтобы было красиво, допишем незначащие нули спереди c помощью функций $setw$ и $setfill$ из библиотеки $<iomanip>$. Создадим класс $TInsex$ в котором будут храниться ключи и значения, функция $Set$, которая поможет нам в создании пар ключ-значение, функция $Show$, выводящая элементы массива. Также дружественной функцией туда записана сортировка подсчётом.
+Теперь самое интересное - функция $main$. Узнал, что существенно может ускорить программу рассинхронизация потоков с помощью строки $ios::sync_with_stdio(false);$. Дальше всё просто: создаём переменные ключа и значения, потом вектор с лаконичным названием $a$, а затем переменную tmp, которая и будет парой, объединяющей ключ и значение. Вводим ключи и значения через, неожиданно, $scanf$, потому что это быстрее. Неоднократно проверено с помощью $chrono$, о котором подробнее в разделе \enquote{Тест производительности}. Скорее всего, это связано с тем, что cin и cout должны синхронизироваться со стандартной библиотекой Си. Затем применяем функцию $Set$, а затем получившуюся пару помещаем в вектор. Повторяем ввод и нижеописанные действия, пока не введём всё, что нам нужно. Затем всё сортируем и выводим.
+
+
+\begin{lstlisting}[language=C++]
+#include <iostream>
+#include <iomanip>
+#include <algorithm>
+#include <cassert>
+
+using namespace std;
+
+const int SIZE_ARRAY = 1000000;
+
+template <typename T>
+class TVector {
+public:
+    using value_type = T;
+    using iterator = value_type*;
+    using const_iterator = const value_type*;
+
+    TVector():
+        already_used_(0), storage_size_(0), storage_(nullptr)
+    {
+    }
+
+    TVector(int size, const value_type& default_value = value_type()):
+        TVector()
+    {
+        assert(size >= 0);
+
+        if (size == 0)
+            return;
+
+        already_used_ = size;
+        storage_size_ = size;
+        storage_ = new value_type[size];
+
+        fill(storage_, storage_ + already_used_, default_value);
+    }
+
+    int Size() const
+    {
+        return already_used_;
+    }
+
+    /*bool empty() const
+    {
+        return Size() == 0;
+    }
+
+    iterator begin() const
+    {
+        return storage_;
+    }
+
+    iterator end() const
+    {
+        if (storage_)
+            return storage_ + already_used_;
+
+        return nullptr;
+    }*/
+
+    friend void Swap(TVector& lhs, TVector& rhs)
+    {
+        using std::swap;
+
+        swap(lhs.already_used_, rhs.already_used_);
+        swap(lhs.storage_size_, rhs.storage_size_);
+        swap(lhs.storage_, rhs.storage_);
+    }
+
+    TVector& operator=(TVector other)
+    {
+        Swap(*this, other);
+        return *this;
+    }
+
+    TVector(const TVector& other):
+        TVector()
+    {
+        TVector next(other.storage_size_);
+        next.already_used_ = other.already_used_;
+
+        if (other.storage_ )
+            copy(other.storage_, other.storage_ + other.storage_size_,
+                      next.storage_);
+
+        Swap(*this, next);
+    }
+
+    ~TVector()
+    {
+        delete[] storage_;
+
+        storage_size_ = 0;
+        already_used_ = 0;
+        storage_ = nullptr;
+    }
+
+    void PushBack(const value_type& value)
+    {
+        if (already_used_ < storage_size_) {
+            storage_[already_used_] = value;
+            ++already_used_;
+            return;
+        }
+
+        int next_size = 1;
+        if (storage_size_)
+            next_size = storage_size_ * 2;
+
+        TVector next(next_size);
+        next.already_used_ = already_used_;
+
+        if (storage_ )
+            std::copy(storage_, storage_ + storage_size_, next.storage_);
+
+        next.PushBack(value);
+        Swap(*this, next);
+    }
+
+    const value_type& At(int TInsex) const
+    {
+        if (TInsex < 0 || TInsex > already_used_)
+            throw std::out_of_range("You are doing this wrong!");
+
+        return storage_[TInsex];
+    }
+
+    value_type& At(int TInsex)
+    {
+        const value_type& elem = const_cast<const TVector*>(this)-> At(TInsex);
+        return const_cast<value_type&>(elem);
+    }
+
+    const value_type& operator[](int TInsex) const
+    {
+        return At(TInsex);
+    }
+
+    value_type& operator[](int TInsex)
+    {
+        return At(TInsex);
+    }
+
+private:
+    int already_used_;
+    int storage_size_;
+    value_type* storage_;
+};
+
+typedef unsigned long long long_t;
+
+class TInsex{
+public:
+    long_t key, elem;
+    TInsex(int k, long_t e) : key(k), elem(e) {}
+    TInsex() : key(), elem() {}
+    friend TInsex* CountingSort(TInsex* obj, long_t max, size_t n);
+    void Show(){
+      cout << setw(6) << setfill('0') << key << "    " << elem << '\n';
+    }
+    TInsex Set(long_t k, long_t e){
+      elem = e;
+      key  = k;
+      return *this;
+    }
+  };
+
+void CountingSort(TVector <TInsex>& a){     
+  int *c = new int[SIZE_ARRAY]{0};   
+  TVector <TInsex> out(a.Size());  
+
+  for (size_t i = 0; i < a.Size(); ++i){     
+    c[a[i].key]++;
+    //c[a[i].key] = a[i].elem;
+  }
+  for (int i = 1; i < SIZE_ARRAY; ++i){
+    c[i] += c[i - 1];
+  }
+  for (int i = a.Size() - 1; i >= 0; i--){     
+    out[--c[a[i].key]] = a[i];
+  }
+  Swap(out, a);         
+  delete[] c;
+}
+
+int main(){
+    ios::sync_with_stdio(false); 
+    long_t e, k;
+    TVector <TInsex> a;
+    TInsex tmp;   
+
+    while (scanf("%llu%llu", &k, &e) == 2) {
+      tmp.Set(k, e);
+      a.PushBack(tmp);    
+    }
+
+    CountingSort(a); 
+
+    for (int i = 0; i < a.Size(); i++){
+      a[i].Show();
+    }
+    return 0;
+}
+\end{lstlisting} 
+\pagebreak
+
+\section{Консоль}
+\begin{alltt}
+tim@wrangler:~/Desktop/da/1$ g++ main.cpp 
+tim@wrangler:~/Desktop/da/1$ cat test1.txt 
+534095 345092598342
+533553 539080594648
+354253 532555523555
+525 5324534
+098432 3542098
+43444 423904
+1 1
+525 5487369
+tim@wrangler:~/Desktop/da/1\$ ./a.out < test1.txt 
+000001    1
+000525    5324534
+000525    5487369
+043444    423904
+098432    3542098
+354253    532555523555
+533553    539080594648
+534095    345092598342
+\end{alltt}
+\pagebreak
+\section{Тест производительности}
+В тесте производительности пришлось реализовать целых две программы, в каждой из которых генерируются ключи для сортировки, количество которых, в свою очередь, задаётся пользователем. Для замера времени сортировки используются функции из библиотеки $<chrono>$. Они замеряют время до начала сортировки и сразу после конца, вычитают одно из другого и выводят результат в миллисекундах. Забавно, что время считается от 1.01.1970. Сравнивал я, собственно, сортировку подсчётом и $std::sort$, то бишь, сортировку Хоара.
+
+\begin{alltt}
+tim@wrangler:~/Desktop/da/1$ ./count
+10
+The time: 6 ms
+tim@wrangler:~/Desktop/da/1$ ./count
+100
+The time: 7 ms
+tim@wrangler:~/Desktop/da/1$ ./count
+1000
+The time: 8 ms
+tim@wrangler:~/Desktop/da/1$ ./count
+10000
+The time: 12 ms
+tim@wrangler:~/Desktop/da/1$ ./count
+100000
+The time: 28 ms
+tim@wrangler:~/Desktop/da/1$ ./count
+1000000
+The time: 82 ms
+tim@wrangler:~/Desktop/da/1$ ./count
+10000000
+The time: 838 ms
+tim@wrangler:~/Desktop/da/1$ ./count
+100000000
+The time: 10692 ms
+tim@wrangler:~/Desktop/da/1$ ./std 
+10
+The time: 0 ms
+tim@wrangler:~/Desktop/da/1$ ./std 
+100
+The time: 0 ms
+tim@wrangler:~/Desktop/da/1$ ./std 
+1000
+The time: 0 ms
+tim@wrangler:~/Desktop/da/1$ ./std 
+10000
+The time: 10 ms
+tim@wrangler:~/Desktop/da/1$ ./std 
+100000
+The time: 29 ms
+tim@wrangler:~/Desktop/da/1$ ./std 
+1000000
+The time: 334 ms
+tim@wrangler:~/Desktop/da/1$ ./std 
+10000000
+The time: 3828 ms
+tim@wrangler:~/Desktop/da/1$ ./std 
+100000000
+The time: 41909 ms
+\end{alltt}
+
+Из результатов могу выделить то, что при этих тестах, работает быстрее сортировка подсчётом, чем Хоара. Видно, что сложность соритровки Хоара $O(nlogn),$ а сортировки подсчётом - $O(n)$. Cответственно, при большом количестве тестов сортировка подсчётом работает быстрее, чем сортировка Хоара, а при малом - наоборот, что видно при тестах.
+
+
+
+\pagebreak
+\section{Выводы}
+Выполнив первую лабораторную работу по курсу \enquote{Дискретный анализ}, я научился работать со строками, выделяя нужное и преобразуя их в однотипные значения, и вставлять их в вектор. Также я реализовал сортировку подсчетом. Кроме того я сравнил её с сортировкой Хоара, вызывая встроенную функцию std::sort.
+\pagebreak
+\begin{thebibliography}{99}
+\bibitem{Kormen}
+Томас\,Х.\,Кормен, Чарльз\,И.\,Лейзерсон, Рональд\,Л.\,Ривест, Клиффорд\,Штайн.
+{\itshape Алгоритмы: построение и анализ, 2-е издание.} --- Издательский дом \enquote{Вильямс}, 2007. Перевод с английского: И.\,В.\,Красиков, Н.\,А.\,Орехова, В.\,Н.\,Романов. --- 1296 с. (ISBN 5-8459-0857-4 (рус.))
+\bibitem{wikipedia_sort}
+{\itshape Сортировка подсчётом - Википедия.} \\URL: \texttt{http://ru.wikipedia.org/wiki/Сортировка\_подсчётом}
+\end{thebibliography}
+\pagebreak
+\end{document}
